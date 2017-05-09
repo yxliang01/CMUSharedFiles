@@ -53,7 +53,7 @@ Unsigned addition: If $ \text{true sum} \ge 2^w $, it will wrap around, but it w
 
 Signed addition: If $ sum \ge 2^{w-1} $, it will be negative, it will wrap around **at most once**. If $ sum \le -2^{w-1}-1 $, it will be positive, it will wrap around **at most once**.
 
-![Characterizing-TAdd](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Characterizing-TAdd.png)
+![Characterizing-TAdd](Images/Characterizing-TAdd.png)
 
 #### Negative
 
@@ -91,9 +91,9 @@ $ s = \text{Sign Bit} $
 $ M = \text{Significand} $ - Normally a fractional value in range $ [1.0, 2.0) $
 $ E = \text{Exponent} $
 
-![IEEE-Floating-Options](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/IEEE-Floating-Options.PNG)
+![IEEE-Floating-Options](Images/IEEE-Floating-Options.PNG)
 
-![IEEE-Floating-Three-Kinds](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/IEEE-Floating-Three-Kinds.PNG)
+![IEEE-Floating-Three-Kinds](Images/IEEE-Floating-Three-Kinds.PNG)
 
 ##### Normalized values
 
@@ -124,9 +124,9 @@ It can be both positive and negative.
 If $ Frac \ne 000...0 $, it represents NaN - Not-a-Number (case when no numeric value can be determined).
 E.g. $ sqrt(-1) $, $ \infty * \infty $ 
 
-![IEEE-Floating-Encodings](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/IEEE-Floating-Encodings.PNG)
+![IEEE-Floating-Encodings](Images/IEEE-Floating-Encodings.PNG)
 
-![IEEE-Floating-Distribution](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/IEEE-Floating-Distribution.PNG)
+![IEEE-Floating-Distribution](Images/IEEE-Floating-Distribution.PNG)
 
 Can almost use unsigned integer comparison.
 
@@ -186,7 +186,7 @@ $ (3.14 + 1e10) - 1e10 = 0, 3.14 + (1e10 - 1e10) = 3.14 $
 
 ---------------
 
-![FP-Interesting-Numbers](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/FP-Interesting-Numbers.png)
+![FP-Interesting-Numbers](Images/FP-Interesting-Numbers.png)
 
 
 ## Machine Structure
@@ -194,7 +194,7 @@ $ (3.14 + 1e10) - 1e10 = 0, 3.14 + (1e10 - 1e10) = 3.14 $
 ### Memory
 
 Linux Memory Layout
-![Linux-Memory-Layout](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Linux-Memory-Layout.png)
+![Linux-Memory-Layout](Images/Linux-Memory-Layout.png)
 
 #### Stack smashing attacks
 - Overwrite normal return address by some value
@@ -283,7 +283,7 @@ Big Idea: Create a large pool of storage that costs as much as the cheap storage
 Because of locality, programs tend to access the data at level $ k $ more often than they access the data at level $ k + 1 $.
 
 
-![Example-Memory-Hierarchy](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Example-Memory-Hierarchy.PNG)
+![Example-Memory-Hierarchy](Images/Example-Memory-Hierarchy.PNG)
 
 #### Spatial locality
 
@@ -334,15 +334,15 @@ If write-miss:
 
 ##### General Cache Organization (S, E, B)
 
-![General-Cache-Organization](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/General-Cache-Organization.png)
+![General-Cache-Organization](Images/General-Cache-Organization.png)
 
 Generally address of word is interpreted in this way to locate the cache
 
-![Cache-Interpretation-Address](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Cache-Interpretation-Address.png)
+![Cache-Interpretation-Address](Images/Cache-Interpretation-Address.png)
 
 ### Registers
 
-![X86-64-Integer-Registers](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/X86-64-Integer-Registers.png)
+![X86-64-Integer-Registers](Images/X86-64-Integer-Registers.png)
 
 Temporary data: (`%rax`, `%rbx`....)
 Location of runtime stack: (`%rsp`)
@@ -441,11 +441,11 @@ Set `SF` when `a & b < 0`
 
 ##### set
 
-![Set-Instructions](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Set-Instructions.png)
+![Set-Instructions](Images/Set-Instructions.png)
 
 #### Jumping
 
-![Jumping](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Jumping.png)
+![Jumping](Images/Jumping.png)
 
 #### Stack instructions
 
@@ -456,9 +456,9 @@ The memory didn't change but the `%rsp` will be increased by the size of the dat
 
 #### Procedure Call
 
-![Procedure-Data-Flow](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Procedure-Data-Flow.png)
+![Procedure-Data-Flow](Images/Procedure-Data-Flow.png)
 
-![Register-Functions-In-Procedures](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Register-Functions-In-Procedures.png)
+![Register-Functions-In-Procedures](Images/Register-Functions-In-Procedures.png)
 
 Each procedure has its own stack frame used to store return information, local storage(if necessary), and temporary storage (if necessary)
 
@@ -475,11 +475,11 @@ Jump to address.
 ##### Temporary state save
 - Caller Saved
     + Caller saves temporary values in its frame before the call
-    + ![Caller-saved](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Caller-saved.png)
+    + ![Caller-saved](Images/Caller-saved.png)
 - Callee Saved
     + Callee saves temporary values in its frame before using
     + Callee restores them before returning to caller
-    + ![Callee-saved](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Callee-saved.png)
+    + ![Callee-saved](Images/Callee-saved.png)
 
 #### Operand types
 
@@ -1102,9 +1102,9 @@ $ 1U $ is an unsigned integer $ 1 $
 When mix signed and unsigned, signed values will be cast to unsigned implicitly **including comparison operations**.
 Bit pattern is maintained while casting between signed and unsigned, it only differs in interpretation.
 
-![Array-Pointer-Example](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Array-Pointer-Example.PNG)
+![Array-Pointer-Example](Images/Array-Pointer-Example.PNG)
 
-![Point-Array-Example](https://github.com/yxliang01/CMUSharedFiles/raw/master/15-213/Images/Point-Array-Example.png)
+![Point-Array-Example](Images/Point-Array-Example.png)
 
 
 The fields of struct in C will be placed in memory according to declaration.
