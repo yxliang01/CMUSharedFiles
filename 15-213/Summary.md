@@ -550,20 +550,23 @@ The linker *associates* each symbol reference with *exactly one* symbol definiti
 - Update all references to these symbols to reflect their new positions
 
 
-![Relocation](Relocation.png)
+![Relocation](Images/Relocation.png)
 
 ##### Linker Program Symbols
 
 ***Global Symbols***
+
 - Symbols defined by a particular module that can be referenced by other modules
 - non-`static` C functions and global variables
 
 
 ***External Symbols***
+
 - Global symbols that are referenced by a module but defined by some other module
 
 
 ***Local Symbols***
+
 - Symbols that defined and referenced exclusively by a module
 - E.g. C functions and global variables defined with the `static` attribute
 - Local variables (e.g. the ones in functions) are not local linker symbols
@@ -583,7 +586,7 @@ If we have a strong symbol and multiple weak symbols, the weak symbols will be r
 If there are all weak symbols, they will all referenced to one of them.
 If they are of different type, memory corruption might happen.
 
-![Linker Puzzles](Linker-Puzzles.png)
+![Linker Puzzles](Images/Linker-Puzzles.png)
 
 #### Files
 
@@ -638,12 +641,12 @@ union Data {
 
 A page table is an array of page table entries(PTEs) that maps virtual pages to physical pages.
 
-![Address Translation With a Page Table](Address-Translation-With-a-Page-Table.png)
+![Address Translation With a Page Table](Images/Address-Translation-With-a-Page-Table.png)
 
 ### ELF Object File Format
 
-![ELF Object File Format](ELF-Object-File-Format.png)
-![ELF Object File Format2](ELF-Object-File-Format2.png)
+![ELF Object File Format](Images/ELF-Object-File-Format.png)
+![ELF Object File Format2](Images/ELF-Object-File-Format2.png)
 
 ## Virtual Memory
 
@@ -677,7 +680,17 @@ When $ Sum(\text{working set sizes}) > \text{main memory size} $, pages are swap
 - An unit for adding virtual memory support
 - **Translation lookaside buffer** can be added to speed up translation (instead of only using DRAM/CPU cache to do the job)
     + small set-associative hardware cache in 
-    
+
+## Exceptional Control Flow
+
+### System call
+
+Similar to normal function call, except for:
+
+- Address of the function is in `%rax`
+- Different set of privileges
+- Executed by Kernel
+
 ## I/O
 
 A Linux file is a sequence of bytes.
@@ -698,6 +711,42 @@ Each directory contains at least two entries.
 
 ***Socket***: For communicating with a process on another machine
 
+### Functions
+
+#### `stat`, `fstat`
+
+#### `opendir`, `readdir`, `closedir`
+
+Get the metadata of files.
+
+#### Text-oriented I/O
+
+They will interpret the EOL character (newline).
+
+#### Lower level Unix I/O functions
+
+***Pros***
+- The most general and lowest overhead form of I/O
+    + All other I/O packages are implemented using Unix I/O function
+- Provide functions for accessing file metadata
+- They are async-signal-safe and can be used safely in signal handlers
+
+***Cons***
+- Dealing with short counts is tricky and error prone
+- Efficient reading of text lines requires some form of buffering
+- Both of these issues are addressed by the standard I/O and RIO packages
+
+#### Standard I/O
+
+***Pros***
+- Buffering increases efficiency by decreasing the number of `read` and `write` system calls
+- Short counts are handled automatically
+
+***Cons***
+- Provides no function for accessing file metadata
+- They are not async-signal-safe, and not appropriate for signal handlers
+- They are not appropriate for input and output on network sockets
+
 
 ## Networking
 
@@ -710,8 +759,8 @@ Hosts are mapped to a set of 32-bit IP address. The upper bound is `255.255.255.
 ***IPv6***
 128-bit addresses.
 
-![Internet Domain Name Levels](Internet-Domain-Name-Levels.png)
-![Internet Connection Hierarchy](Internet-Connection-Hierarchy.png)
+![Internet Domain Name Levels](Images/Internet-Domain-Name-Levels.png)
+![Internet Connection Hierarchy](Images/Internet-Connection-Hierarchy.png)
 
 
 ### Misc
@@ -723,7 +772,6 @@ A type of Uniform Resource Identifier (URI).
 #### MIME types
 
 Used by HTTP protocol. Used to specify the type of the content that is being transferred.
-
 
 #### Connected VS Listening Descriptors
 
@@ -849,9 +897,42 @@ spaces represented by `+` or `%20`
 ### Linux Specific
 - `/etc/services` has mapping between well-known ports and service names
 
+## Program Execution
+
+### Context Switching
+Processes are managed by a shared chunk of memory-resident OS code called the *kernel*. Control flow passes from one process to anther via a *context switch*.
+
+### States
+
+***Running***
+Process is either executing, or waiting to be executed and will eventually be scheduled by the kernel.
+
+***Stopped***
+Process execution is suspended and will not be scheduled until further notice
+
+***Terminated***
+Process is stopped permanently
+
+
+## Linux Programs
+
+### `strace`
+
+Trace system calls and signals
+
 ## Parallel Programming
 
 ### Terminology
+
+***Process***
+An instance of a running program.
+
+*NOTE: children process doesn't rely on parent to live*
+
+**Zombie Process**
+Process that is terminated but still has information (e.g. exit status) stored.
+
+If its parent terminates without having its children information reaped, `init` will reap.
 
 ***Reentrant***
 Means something can be interrupted and resumed later without problem.
@@ -862,9 +943,9 @@ A deadlock is a state in which each member of a group of actions, is waiting for
 ***Livelock***
 A livelock is similar to a deadlock, except that the states of the processes involved in the livelock constantly change with regard to one another, none progressing.
 
-
 ***Starvation***
 Resources are kept being freed and acquired. But, some threads can never get the resource to advance.
+
 
 ***Races***
 Outcome depends on arbitrary scheduling decisions elsewhere in the system.
@@ -905,12 +986,34 @@ $ T_{\inf} = (1-p)T $
 
 ### Functions
 
-***fork***
+***`fork()`***
 
 - Create a process that will run the instruction that is right after the `fork()` invocation
-- New process inherits all file descriptors, uid, gid from the parent process
-    + Therefore, it's important to close all those unneeded file descriptors
+- New process inherits all **file descriptors**, **uid**, **gid** from the parent process
+    + Therefore, it's important to close all those unneeded file descriptors in the child process
+- Get an identical copy of the parent's virtual address space
+- Return 0 on child process, `pid` of the child on parent process
+- Linux specific
+    + child process shares same space with parent with Copy-on-write enabled
 
+***`wait(int *child_status)`***
+
+- Suspends current process until *one of its children terminates*
+
+***`waitpid(pid_t pid, int *status, int options)`***
+
+- Suspends current process until specific process terminates
+- If `pid == -1`, it waits for arbitrary child
+
+***`execve(char *filename, char *argv[], char *envp[])`***
+
+- `envp` is an array of string in form of `name=value`
+- This will execute the target program which overwrites *code*, *data*, and *stack*
+- This retains *PID*, *open files*, and *signal context*
+
+***`mmap(void *start, int len, int prot, int flags, int fd, int offset)`***
+
+- if `start == 0`, may be `0` for "pick an address"
 
 ***pthread_create***
 ***pthread_join***
@@ -987,7 +1090,8 @@ Threads write to data in the same cache block will invalidate each other's cache
                 + increment `s` by `1`
                     * must increase atomically
         * Invariant: `s >= 0`
-
+## Misc
+- Each x86-64 system call has a unique ID number
 
 
 Mid Term Special Notes
