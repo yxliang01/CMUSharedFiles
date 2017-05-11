@@ -188,6 +188,69 @@ $ (3.14 + 1e10) - 1e10 = 0, 3.14 + (1e10 - 1e10) = 3.14 $
 
 ![FP-Interesting-Numbers](Images/FP-Interesting-Numbers.png)
 
+## Dynamical Memory Allocation
+
+### Evaluation metric
+
+#### Throughput
+
+$$ Operations/Second $$
+
+#### Memory Utilization
+
+$$ U_k = \frac{\text{Sum of payload sizes}}{\text{Heap size}} $$
+
+### Fragmentation
+
+Poor memory utilization is caused by fragmentation.
+
+#### Internal Fragmentation
+
+Occurs when payload is smaller than block size.
+
+Normally caused by:
+
+- overhead of maintaining heap data structures
+- padding for alignment purposes
+- explicit policy decisions
+
+The extent it affects the memory utilization depends on *previous requests*.
+
+#### External Fragmentation
+
+Occurs when there's enough aggregate heap memory, but no single free block is large enough.
+
+The extent it affects the memory utilization depends on *future  requests*.
+
+#### False Fragmentation
+
+There are free blocks that have enough contiguous free space, but the allocation can't find it.
+
+Using coalescing to solve this: Join next/previous free blocks to have a bigger free block.
+
+There are *immediate coalescing* and *deferred coalescing*.
+
+### Allocator Requirement
+- Must respond immediately to `malloc` request
+- Must allocation from *free memory*
+- Must fulfil all alignment requirements
+    + 16 bytes for x86-64 alignment on Linux
+- Must allocation block of contiguous memory that is at least as large as the requested size
+- Can't move the allocated blocks
+
+### Strategy For Finding a Free Block
+
+#### First Fit
+
+Search list from beginning, choose *first* free block that fits
+
+#### Next Fit
+
+Search list starting where previous search finished.
+
+#### Best Fit
+
+Search the whole list, choose the best free block: fits, with fewest bytes left over
 
 ## Machine Structure
 
@@ -271,8 +334,8 @@ Rotation is counter-clockwise.
 $$ T_{access} = T_{avg seek} + T_{avg rotation} + T_{avg transfer} $$
 
 Seek time ($ T_{avg seek} $): Time to position heads over cylinder containing target sector
-Rotational latency ($ T_{avg rotation} $): Time waiting for first bit of target sector to pass under r/w head $ = 1/2 * 1/RPM * 60 sec/1 min (\text{for second}) $
-Transfer time($ T_{avg transfer} $): Time to read the bits in the target sector $ = 1/RPM * 1/(avg # sectors/track) * 60 sec/1 min $
+Rotational latency ($ T_{\text{avg rotation}} $): Time waiting for first bit of target sector to pass under r/w head $ = 1/2 * 1/RPM * 60 sec/1 min (\text{for second}) $
+Transfer time($ T_{\text{avg transfer}} $): $ \text{Time to read the bits in the target sector} = 1/RPM * 1/\text{avg number of sectors/track} * 60 sec/1 min $
 
 ### Memory Hierarchy
 
@@ -650,6 +713,8 @@ A page table is an array of page table entries(PTEs) that maps virtual pages to 
 
 ## Virtual Memory
 
+***Working set***: Active virtual pages
+
 When $ \text{working set size} < \text{main memory size} $, we get good performance for one process after compulsory misses.
 
 When $ Sum(\text{working set sizes}) > \text{main memory size} $, pages are swapped (copied) in and out continuously.
@@ -764,6 +829,12 @@ Hosts are mapped to a set of 32-bit IP address. The upper bound is `255.255.255.
 
 
 ### Misc
+
+#### Async-signal-safe
+
+Function is async-signal-safe if either **reentrant** or **non-interruptible by signals**.
+
+Popular functions that are ***NOT*** on the list: `printf`, `sprintf`, `malloc`, `exit`
 
 #### URL
 
@@ -899,6 +970,61 @@ spaces represented by `+` or `%20`
 
 ## Program Execution
 
+### Signals
+
+A signal is a small message that notifies a process that an event of some type has occurred in the system.
+
+They are identified by small integer ID.
+
+Programs can use function `kill(PID, SIGNAL)` to send the signal which returns after the signal is sent.
+
+By default, when you use key combinations like `ctrl+c` or `ctrl+z`, the kernel will send the signal to the job in the foreground process group (instead of just that process).
+
+Kernel will process(take actions) for all the non-blocking signals until all of them are processed. The program can then go back to its logical flow.
+
+Kernel blocks any pending signals of type currently being handled.
+
+It's possible for signal handlers to be interrupted by signals.
+
+#### Signal Handler Guideline
+- Call only async-signal-safe function
+- Save and store `errno` on entry and exit if functions that invoke in the handler might overwrite it
+- Declare global variables as `volatile` to prevent compiler from storing them in a register
+- Declare global flags as `volatile sig_atomic_t`
+    + They can only be read or written
+        * E.g. `flag = 1` instead of `flag++`
+
+#### Common Signals
+- `SIGINT`
+    + When typed ctrl+c
+- `SIGKILL`
+    + Can't be overridden nor ignore
+- `SIGSEGV`
+    + When Segmentation violation
+- `SIGALARM`
+    + Timer signal
+- `SIGCHLD`
+    + Child **stopped** or **terminated**
+- `SIGTSTP`
+    + For asking to suspend
+- `SIGCONT`
+    + For asking to continue execution 
+
+#### Signal reactions
+- *Ignore*
+- *Terminate*
+- *Catch*
+    + handle the signal by executing user-level function called *signal handler*
+- *suspend*
+    + Process stops running until restarted by a `SIGCONT` signal
+
+#### Signal states
+- *pending*
+    + ***Signals are not queued***
+    + If a process has a pending signal of type $ k $, then subsequent signals of type $ k $ that are sent to that process are discarded
+- *blocked*
+    + Blocked signals can be delivered, but will not be received until the signal is unblocked.
+
 ### Context Switching
 Processes are managed by a shared chunk of memory-resident OS code called the *kernel*. Control flow passes from one process to anther via a *context switch*.
 
@@ -913,12 +1039,59 @@ Process execution is suspended and will not be scheduled until further notice
 ***Terminated***
 Process is stopped permanently
 
+### Signal Functions
+
+***`sigsuspend(mask)`***
+
+Replaces the signal mask with `mask` temporarily. It returns when the program receives signal that is not in the `mask`. If there's handler associated with the received signal, this return will return **after** the handler is done.
+
+***`sigaction`***
+
+Provides portable signal handling.
+
+TODO
+
+***`kill(int PID, int SIG)`***
+
+If it sends signal to itself, it's guaranteed that `kill` returns after the signal handler is done executing.
+
+When `PID > 0`, signal is sent to the process
+
+When `PID == 0`, signal will be sent to all processes in the current process group.
+
+When `PID == -1`, signal will be sent to all processes for which the calling process has permission to send signals except for `init`
+
+When `PID < -1`, signal will be sent to all processes in the process group `-PID`
+
+
+
+## Nonlocal Jumps
+
+### Nonlocal Jump Functions
+
+***`setjmp(jmp_buf j)`***
+
+Called once, returns one or more times.
+Returns `0` when it is the first time being called.
+
+***`longjmp(jmp_buf j, int i)`***
+
+When call, it will return from the `setjmp` with return value `i`.
+
+This have to call after `setjmp`. This will never return.
+Can only `longjmp` to the environment of function that has been called but not yet completed (the stack frame must still be there).
+
+For `non-volatile` variables, if they were changed between `setjmp` and `longjmp`, its value is indeterminate.
 
 ## Linux Programs
 
 ### `strace`
 
 Trace system calls and signals
+
+### `pstree`
+
+View process tree.
 
 ## Parallel Programming
 
@@ -944,7 +1117,7 @@ A deadlock is a state in which each member of a group of actions, is waiting for
 A livelock is similar to a deadlock, except that the states of the processes involved in the livelock constantly change with regard to one another, none progressing.
 
 ***Starvation***
-Resources are kept being freed and acquired. But, some threads can never get the resource to advance.
+Starvation describes a situation where a thread is unable to gain regular access to shared resources and is unable to make progress. This happens when shared resources are made unavailable for long periods by "greedy" threads. For example, suppose an object provides a synchronized method that often takes a long time to return. If one thread invokes this method frequently, other threads that also need frequent synchronized access to the same object will often be blocked.
 
 
 ***Races***

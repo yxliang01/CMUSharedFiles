@@ -36,7 +36,7 @@ In order to make this work, mixer should have enough amount of inputs which have
 - One-wayness
     + Given $ y = H(x) $, computationally infeasible to find $ x $
 - Weak collision resistance
-    + Given $ x %, computationally infeasible to find $ y \ne x $ such that $ H(x) = H(y) $
+    + Given $ x $, computationally infeasible to find $ y \ne x $ such that $ H(x) = H(y) $
 - Strong collision resistance
     + Computationally infeasible to find any pair $ (x,y) $ such that $ H(x) = H(y) $
 - Puzzle-friendliness
@@ -220,6 +220,32 @@ Generator: There exists some element $ g \in G $ such that for all $ a \in G $, 
 
 ![ElGamal-Signature-Scheme](https://github.com/yxliang01/CMUSharedFiles/raw/master/19-355/Summary-Images/ElGamal-Signature-Scheme.png)
 
+### Linkable Ring Signature
+
+We have a group of people. Now, we have a signature. We know that this signature must come from that group of people. But, we have no idea who in the group signed it.
+
+`Sign(message, PK_1, PK_2, PK_3, ..., s, SK_s)`
+
+We only need one of the secret key `SK_s` that corresponds to one of the public key `PK_s` to have a valid signature.
+
+#### Traceable Linkable Ring Signature
+
+We still can use one of the secret key `SK_s` that corresponds to one of the public key `PK_s` to have a valid signature. But, now we know the `s`.
+
+# Decentralized Anonymous Market
+
+## Properties
+
+### Correctness
+A customer who performs a valid payment transaction for an item can always review that particular item
+
+### Soundness
+It's not possible to leave a valid review for an item without purchasing it. When an item is purchased, exactly 1 review may be left.
+
+### Review-payment unlinkability:
+
+
+### Review-payment deniability
 
 # Distributed Consensus
 
@@ -255,6 +281,25 @@ Can't:
 
 # Misc
 
+## Game Theory and Cryptocurrency
+
+### Terms
+#### Rational
+Individuals are able to estimate the benefits and costs of a particular action (i.e. are able to estimate the net benefit)
+
+#### Self-interested
+Agents engage in an activity if the benefit is greater than or equal to the cost (i.e. the net benefit is greater than or equal to zero)
+
+#### Social optimum
+Set of strategies that maximizes total $ U = \Sigma^N_{i=1} U_i $ network utility
+
+This is ideal and is what a benevolent government would want
+
+#### Nash equilibrium
+Set of strategies in which no individual player can increase their individual utility $ U_i $ by changing their strategy
+
+It's a selfish equilibrium.
+
 ## Ponzi scheme
 
 A fraudulent investment operation where the operator, an individual or organization, pays returns to its investors from new capital paid to the operators by new investors, rather than from profit earned through legitimate sources.
@@ -266,6 +311,54 @@ An attack wherein a reputation system is subverted by forging identities.
 ## Selfish Mining
 
 Instead of reporting whatever blocks you found, you keep them secret and continue mining based on them. Release blocks immediately when you lose lead or N blocks more than main chain where $ N > 1 $. This way you are more likely to have more profit than being honest.
+
+## Miner's dilemma
+
+If all miners are malicious, the equilibrium would be Nash equilibrium. If all miners are honest, we get social optimum. The thing is, if you are the only one malicious, you will get a lot more than if you were honest.
+
+## ASIC Resistant
+
+$ ASIC Resistant functions \implies Memory hard functions $
+
+### Examples
+- Ethash
+
+## Scrypt
+
+Not ASIC Resistant.
+Litecoin is using.
+
+## Proof-of-burn
+
+This is a technique used to bootstrap a new currency. Basically, you **lock** some money on an established blockchain to get some other coin in other (new)blockchain.
+
+## Instant Karma PKI (IKP)
+
+### Problem
+
+There are unauthorized certificates issued by different root CAs. IKP allows the reporting and punishment process to be automated.
+
+### Incentive for adoption
+
+CAs adopted IKP would increase their competence.
+
+### Desired Properties
+- Audibility
+- Automation
+- Incentivization
+- Deterrence
+
+## Proof of Stake
+
+The creator of next block is chosen in a deterministic (pseudo-random) way, and the chance that an account is chosen depends on its wealth (i.e. stake).
+
+## Feather forking
+
+Some miners announce that they won't accept certain transactions. Although the miners collaboratively have a small fraction of mining powers. But, the cost for other miners to adapt is nearly 0 while this can increase the profit. Therefore, a fork is possible. 
+
+## Merge mining
+
+Mining more than one currency using the same operations.
 
 # Questions
 - What's the problem of `splitDAO()` (in theDAO contract)
